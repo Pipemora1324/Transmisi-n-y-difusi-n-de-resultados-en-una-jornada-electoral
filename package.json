@@ -1,29 +1,25 @@
 {
   "name": "preconteo-tiempo-real",
   "version": "1.0.0",
+  "private": true,
   "description": "Preconteo electoral en tiempo real: WebSockets, SSE, Redis backplane, fan-out por lotes",
   "main": "src/server.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "cluster:local": "node scripts/local-cluster.js",
-    "load:public": "node loadtest/public-clients.js",
-    "load:jurors": "node loadtest/jurors.js",
-    "load:slow": "node loadtest/slow-client.js",
-    "load:auditors": "node loadtest/auditors.js",
-    "test": "node --test test/*.test.js"
-  },
-  "author": "",
   "license": "MIT",
-  "dependencies": {
-    "ioredis": "^6.0.0",
-    "ws": "^8.22.1"
-  },
   "type": "module",
-  "engines": {
-    "node": ">=20"
-  }
+  "engines": { "node": ">=22.9" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "cluster": "node --env-file-if-exists=.env scripts/local-cluster.js",
+    "cluster:local": "node --env-file-if-exists=.env scripts/local-cluster.js",
+    "seed": "node --env-file-if-exists=.env scripts/seed-demo.js",
+    "check:deployment": "node --env-file-if-exists=.env scripts/check-deployment.js",
+    "load:public": "node --env-file-if-exists=.env loadtest/public-clients.js",
+    "load:jurors": "node --env-file-if-exists=.env loadtest/jurors.js",
+    "load:slow": "node --env-file-if-exists=.env loadtest/slow-client.js",
+    "load:auditors": "node --env-file-if-exists=.env loadtest/auditors.js",
+    "test": "node --test test/*.test.js",
+    "test:integration": "node --test test/integration/*.test.js"
+  },
+  "dependencies": { "ioredis": "^6.0.0", "ws": "^8.22.1" }
 }

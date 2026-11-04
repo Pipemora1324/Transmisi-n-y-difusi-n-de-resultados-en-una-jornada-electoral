@@ -45,10 +45,6 @@ export const streamReader = makeClient('stream');
 redis.defineCommand('applyActa', { numberOfKeys: 16, lua: lua('apply_acta') });
 redis.defineCommand('flushWindow', { numberOfKeys: 5, lua: lua('flush_window') });
 redis.defineCommand('snapshot', { numberOfKeys: 1, lua: lua('snapshot') });
-redis.defineCommand('claimActa', { numberOfKeys: 3, lua: lua('claim') });
-redis.defineCommand('renewLock', { numberOfKeys: 1, lua: lua('renew') });
-redis.defineCommand('releaseLock', { numberOfKeys: 2, lua: lua('release') });
-redis.defineCommand('rejectActa', { numberOfKeys: 4, lua: lua('reject') });
 redis.defineCommand('leader', { numberOfKeys: 1, lua: lua('leader') });
 redis.defineCommand('rateLimit', { numberOfKeys: 1, lua: lua('rate_limit') });
 
