@@ -25,6 +25,8 @@ class SseClient {
     this.lastId = null;
     this.replaying = true;
     this.buffer = [];
+    this.lagging = false;
+    this.laggingSince = 0;
     this.closed = false;
   }
 
@@ -32,6 +34,7 @@ class SseClient {
   push(id, frame) {
     if (this.closed) return false;
     if (this.replaying) { this.buffer.push([id, frame]); return true; }
+    if (this.lagging) return false; // RF-9: no se acumula detalle para un cliente lento
     if (this.lastId && compareIds(id, this.lastId) <= 0) return false;
     const ok = this.write(frame);
     if (ok) this.lastId = id;
@@ -40,8 +43,35 @@ class SseClient {
 
   write(frame) {
     if (this.closed) return false;
-    this.res.write(frame);
+    const res = this.res;
+    if (res.writableLength > config.sse.killWaterBytes) {
+      this.kill('SLOW_CLIENT');
+      return false;
+    }
+    res.write(frame);
+    if (!this.lagging && res.writableLength > config.sse.highWaterBytes) {
+      // RF-9: el búfer de salida pasó el umbral. Dejamos de mandar detalle y, cuando el
+      // socket se vacíe, mandamos una fotografía del estado actual.
+      this.lagging = true;
+      this.laggingSince = Date.now();
+      metrics.lagging(1);
+      res.once('drain', () => this.catchUp());
+    }
     return true;
+  }
+
+  async catchUp() {
+    if (this.closed) return;
+    this.lagging = false;
+    metrics.lagging(-1);
+    // Los deltas omitidos solo se recuperan con la fotografía: no se vuelve al flujo en vivo
+    // hasta enviarla, y lo que llegue mientras tanto se entrega después de ella.
+    this.replaying = true;
+    await syncClient(this, async () => {
+      const snap = await takeSnapshot(this.view.topics);
+      this.write(snapshotFrame(snap, 'contrapresion'));
+      this.lastId = snap.id;
+    });
   }
 
   finishReplay() {
@@ -53,6 +83,19 @@ class SseClient {
       }
     }
     this.buffer = [];
+  }
+
+  // Desconexión con código: el cliente sabe que debe volver con continuidad.
+  kill(code) {
+    if (this.closed) return;
+    const frame = `event: bye\ndata: ${JSON.stringify({ code, resume: true, lastId: this.lastId })}\n\n`;
+    if (code === 'SLOW_CLIENT') {
+      metrics.droppedSlow();
+      console.warn(`[sse] cliente ${this.id} desconectado por ${code} (pendiente ${this.res.writableLength} bytes)`);
+    }
+    this.closed = true;
+    try { this.res.end(frame); } catch { /* ignorar */ }
+    setTimeout(() => this.res.destroy(), 2000).unref();
   }
 }
 
@@ -107,6 +150,7 @@ export async function handlePublicSse(req, res, url) {
   registry.add(client);
   metrics.conn('public', 1);
   res.on('close', () => {
+    if (client.lagging) metrics.lagging(-1);
     client.closed = true;
     registry.remove(client);
     metrics.conn('public', -1);
@@ -130,8 +174,24 @@ export async function handlePublicSse(req, res, url) {
   });
 }
 
+// Latido para que proxies y balanceadores no cierren conexiones ociosas; también vigila
+// a los clientes que llevan demasiado tiempo rezagados.
+setInterval(() => {
+  const now = Date.now();
+  sendInBatches(registry.allClients(), (c) => {
+    if (c.lagging && now - c.laggingSince > 30000) { c.kill('SLOW_CLIENT'); return false; }
+    if (c.lagging) return false;
+    return c.write(': hb\n\n');
+  });
+}, config.sse.heartbeatMs).unref();
+
 // RF-10: el público ve explícitamente que el sistema está degradado.
 redisEvents.on('status', (ok) => {
   const frame = `event: status\ndata: ${JSON.stringify({ redis: ok })}\n\n`;
-  sendInBatches(registry.allClients(), (c) => c.write(frame));
+  sendInBatches(registry.allClients(), (c) => !c.lagging && c.write(frame));
 });
+
+// Cierre ordenado: avisamos para que cada cliente reconecte con espera aleatoria.
+export async function closeAllPublic(code = 'INSTANCE_SHUTDOWN') {
+  await sendInBatches(registry.allClients(), (c) => { c.kill(code); return true; });
+}
