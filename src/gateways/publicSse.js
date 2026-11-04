@@ -195,3 +195,16 @@ redisEvents.on('status', (ok) => {
 export async function closeAllPublic(code = 'INSTANCE_SHUTDOWN') {
   await sendInBatches(registry.allClients(), (c) => { c.kill(code); return true; });
 }
+
+// Transporte 3: polling. Fallback para navegadores sin EventSource o redes que lo cortan.
+export async function handleSnapshot(req, res, url) {
+  const view = parseView(url.searchParams.get('view'));
+  try {
+    const snap = await takeSnapshot(view.topics);
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Instance': config.instanceId });
+    res.end(JSON.stringify({ id: snap.id, s: snap.data, instance: config.instanceId }));
+  } catch {
+    res.writeHead(503, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Resultados temporalmente no disponibles', redis: false }));
+  }
+}
