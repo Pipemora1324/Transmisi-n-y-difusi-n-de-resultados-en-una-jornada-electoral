@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Preconteo Nariño 2026</title>
+  <meta name="description" content="Resultados del preconteo en tiempo real, mesa por mesa." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/theme.css" />
+  <link rel="stylesheet" href="/css/public.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark">E14</span>
+      <span><span class="brand-name">Preconteo Nariño</span><br /><span class="brand-sub">Jornada departamental 2026</span></span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="/" aria-current="page">Resultados</a>
+      <a href="/jurado">Jurados</a>
+      <a href="/auditor">Verificación</a>
+      <a href="/ops">Operación</a>
+    </nav>
+    <span class="conn" id="conn" data-state="retry">Conectando…</span>
+  </header>
+
+  <main class="wrap">
+    <div class="banner" id="banner" role="status"></div>
+
+    <section class="hero" aria-labelledby="scope-title">
+      <div class="hero-main">
+        <p class="scope-kicker" id="scope-kicker">Departamento</p>
+        <h1 id="scope-title">Nariño</h1>
+        <div class="informed">
+          <span class="informed-pct num" id="informed-pct">0,00%</span>
+          <span class="informed-label">de mesas informadas<br /><span class="num" id="informed-count">0 de 6.400</span></span>
+        </div>
+        <div class="tally" aria-hidden="true"><div class="tally-fill" id="tally-fill"></div></div>
+      </div>
+
+      <form class="hero-filter panel" id="filter" aria-label="Elegir qué resultados ver">
+        <div class="field">
+          <label for="sel-mun">Municipio</label>
+          <select class="input" id="sel-mun"><option value="">Todo el departamento</option></select>
+        </div>
+        <div class="field">
+          <label for="sel-puesto">Puesto de votación</label>
+          <select class="input" id="sel-puesto" disabled><option value="">Todos los puestos</option></select>
+        </div>
+        <p class="small muted" id="updated">Esperando el primer reporte</p>
+      </form>
+    </section>
+
+    <section class="race" aria-label="Votos por candidato">
+      <ol class="candidates" id="candidates"></ol>
+      <div class="others" id="others"></div>
+    </section>
+
+    <section class="changes panel" aria-labelledby="changes-title">
+      <h2 id="changes-title">Cambios explicados</h2>
+      <p class="small muted">Cuando un acta se corrige, el número puede bajar. Aquí ves cada corrección y su efecto.</p>
+      <ul class="changes-list" id="changes"><li class="muted small empty">Sin correcciones por ahora.</li></ul>
+    </section>
+
+    <footer class="footer">
+      <span class="chip" id="f-instance">Instancia —</span>
+      <span class="chip" id="f-transport">Transporte —</span>
+      <span class="chip" id="f-inp">INP —</span>
+      <span class="chip num" id="f-id">Evento —</span>
+    </footer>
+  </main>
+
+  <script type="module" src="/js/public.js"></script>
+</body>
+</html>
