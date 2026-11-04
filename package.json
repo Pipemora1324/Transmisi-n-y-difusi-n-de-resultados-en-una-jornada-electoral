@@ -1,0 +1,29 @@
+{
+  "name": "preconteo-tiempo-real",
+  "version": "1.0.0",
+  "description": "Preconteo electoral en tiempo real: WebSockets, SSE, Redis backplane, fan-out por lotes",
+  "main": "src/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "cluster:local": "node scripts/local-cluster.js",
+    "load:public": "node loadtest/public-clients.js",
+    "load:jurors": "node loadtest/jurors.js",
+    "load:slow": "node loadtest/slow-client.js",
+    "load:auditors": "node loadtest/auditors.js",
+    "test": "node --test test/*.test.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ioredis": "^6.0.0",
+    "ws": "^8.22.1"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
+}
