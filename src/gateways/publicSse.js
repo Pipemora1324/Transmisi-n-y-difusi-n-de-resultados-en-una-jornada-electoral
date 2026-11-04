@@ -196,6 +196,16 @@ export async function closeAllPublic(code = 'INSTANCE_SHUTDOWN') {
   await sendInBatches(registry.allClients(), (c) => { c.kill(code); return true; });
 }
 
+// Solo en DEMO_MODE: ráfaga de relleno para demostrar la contrapresión con un cliente lento.
+export async function floodAll(kb) {
+  const chunk = `: ${'x'.repeat(1022)}\n\n`;
+  let sent = 0;
+  for (let i = 0; i < kb; i++) {
+    sent += await sendInBatches(registry.allClients(), (c) => !c.lagging && !c.replaying && c.write(chunk));
+  }
+  return sent;
+}
+
 // Transporte 3: polling. Fallback para navegadores sin EventSource o redes que lo cortan.
 export async function handleSnapshot(req, res, url) {
   const view = parseView(url.searchParams.get('view'));

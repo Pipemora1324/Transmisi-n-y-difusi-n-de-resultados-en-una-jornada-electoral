@@ -1,7 +1,7 @@
 // Rutas HTTP.
 import { config } from '../config.js';
 import { redis, K, isRedisHealthy } from '../redis.js';
-import { handlePublicSse, handleSnapshot } from '../gateways/publicSse.js';
+import { handlePublicSse, handleSnapshot, floodAll } from '../gateways/publicSse.js';
 
 const json = (res, code, body) => {
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'X-Instance': config.instanceId, 'Cache-Control': 'no-store' });
@@ -33,6 +33,12 @@ export async function route(req, res) {
       }
     } catch { /* ignorar muestras inválidas */ }
     res.writeHead(204); return res.end();
+  }
+  if (req.method === 'POST' && path === '/api/debug/flood') {
+    if (!config.demoMode) return json(res, 403, { error: 'Solo disponible con DEMO_MODE=1' });
+    const kb = Math.min(Number(url.searchParams.get('kb') || 512), 8192);
+    const sent = await floodAll(kb);
+    return json(res, 200, { ok: true, kb, frames: sent });
   }
   json(res, 404, { error: 'No encontrado' });
 }
