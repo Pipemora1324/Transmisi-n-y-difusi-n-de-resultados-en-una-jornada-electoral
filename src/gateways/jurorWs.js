@@ -9,6 +9,7 @@ import { config } from '../config.js';
 import { receiveActa } from '../ingest/actas.js';
 import { checkRateLimit } from '../ingest/rateLimit.js';
 import { metrics } from '../metrics/metrics.js';
+import { redisEvents, isRedisHealthy } from '../redis.js';
 
 export const jurorWss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
 const sockets = new Set();
@@ -23,7 +24,7 @@ jurorWss.on('connection', (ws, req, url) => {
   ws.isAlive = true;
   sockets.add(ws);
   metrics.conn('juror', 1);
-  send(ws, { type: 'hello', instance: config.instanceId, msg: `Conectado a ${config.instanceId}` });
+  send(ws, { type: 'hello', instance: config.instanceId, redis: isRedisHealthy(), msg: `Conectado a ${config.instanceId}` });
 
   ws.on('pong', () => { ws.isAlive = true; });
   ws.on('close', () => { sockets.delete(ws); metrics.conn('juror', -1); });
@@ -55,6 +56,11 @@ setInterval(() => {
     ws.ping();
   }
 }, 20000).unref();
+
+// RF-10: si Redis cae, los jurados lo saben al instante y su app sigue encolando.
+redisEvents.on('status', (ok) => {
+  for (const ws of sockets) send(ws, { type: 'status', redis: ok });
+});
 
 export function closeAllJurors() {
   for (const ws of sockets) ws.close(1012, 'Reinicio de instancia: reconecta');

@@ -1,5 +1,5 @@
 // Recepción de actas (RF-1, RF-2, RF-3): validación, regla contable y aplicación atómica.
-import { redis, K } from '../redis.js';
+import { redis, K, isRedisHealthy } from '../redis.js';
 import { config } from '../config.js';
 import { ALL_OPTIONS, actaIdForMesa, getMesa } from '../geo.js';
 import { metrics } from '../metrics/metrics.js';
@@ -65,6 +65,8 @@ function buildKeys(acta, mesa) {
 export async function receiveActa(raw) {
   const { errors, mesa, votos } = validateActa(raw);
   if (errors.length) return reply('REJECTED', { acta: raw?.acta, errors });
+
+  if (!isRedisHealthy()) return reply('UNAVAILABLE', { acta: raw.acta });
 
   const accounting = checkAccounting(votos, raw.sufragantes);
   const mode = accounting.ok ? 'apply' : 'hold';

@@ -3,12 +3,20 @@
 // puede ejecutar otros comandos al mismo tiempo.
 import { Redis } from 'ioredis';
 import { readFileSync } from 'node:fs';
+import { EventEmitter } from 'node:events';
 import { config } from './config.js';
 
 const lua = (name) => readFileSync(new URL(`./lua/${name}.lua`, import.meta.url), 'utf8');
 
+export const redisEvents = new EventEmitter();
+let healthy = false;
+export const isRedisHealthy = () => healthy;
+
 function makeClient(role) {
   const client = new Redis(config.redisUrl, {
+    // Sin cola offline: si Redis no responde fallamos rápido y le decimos la verdad al
+    // jurado (RF-10) en lugar de dejar el comando colgado en memoria.
+    enableOfflineQueue: role !== 'cmd',
     maxRetriesPerRequest: role === 'cmd' ? 1 : null,
     connectTimeout: 3000,
     retryStrategy: (times) => Math.min(200 * 2 ** times, 5000),
@@ -17,6 +25,15 @@ function makeClient(role) {
   client.on('error', (err) => {
     if (role === 'cmd') console.error(`[redis:${role}] error: ${err.message}`);
   });
+  if (role === 'cmd') {
+    client.on('ready', () => { healthy = true; redisEvents.emit('status', true); console.log('[redis] conexión lista'); });
+    client.on('end', () => { healthy = false; redisEvents.emit('status', false); });
+    client.on('close', () => {
+      if (healthy) console.warn('[redis] conexión perdida: entrando en modo degradado');
+      healthy = false;
+      redisEvents.emit('status', false);
+    });
+  }
   return client;
 }
 
