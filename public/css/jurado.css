@@ -1,0 +1,49 @@
+/* App del jurado: campos grandes para dedos y pantallas pequeñas, estados inequívocos. */
+.jur-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
+.jur-grid .banner { grid-column: 1 / -1; margin: 0; }
+
+.acta { display: grid; gap: var(--s-4); border-style: solid; }
+.acta-head { display: flex; justify-content: space-between; gap: var(--s-4); align-items: flex-start; flex-wrap: wrap; }
+.acta-head h2 { margin: 0; }
+.acta-code {
+  font-size: 20px; font-weight: 600; padding: 8px 14px; border-radius: var(--r-sm);
+  border: 1px dashed var(--ink-3); color: var(--ink); letter-spacing: 0.02em;
+}
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+
+.votes { border: 0; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+.votes legend { font-size: 13px; color: var(--ink-2); margin-bottom: var(--s-2); }
+.vote { display: grid; gap: 6px; padding: var(--s-3); border-radius: var(--r-md); background: var(--night); border: 1px solid var(--line); }
+.vote label { font-size: 13.5px; color: var(--ink-2); display: flex; gap: 8px; align-items: center; }
+.vote label::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--ink-3)); }
+.vote input { font-size: 22px; padding: 6px 10px; min-height: 48px; }
+
+.sum-line { display: grid; grid-template-columns: 220px 1fr; gap: var(--s-4); align-items: end; }
+.sum-check { padding: 12px 14px; border-radius: var(--r-md); font-size: 14.5px; background: var(--night); border: 1px solid var(--line); color: var(--ink-2); min-height: 48px; }
+.sum-check[data-state='ok'] { border-color: rgba(55,217,154,.6); color: var(--ok); }
+.sum-check[data-state='bad'] { border-color: rgba(255,176,32,.6); color: var(--warn); }
+
+.actions { display: flex; gap: var(--s-3); justify-content: flex-end; flex-wrap: wrap; }
+
+.outbox-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
+.outbox-head h2 { margin: 0; }
+.sent { list-style: none; margin: var(--s-4) 0 0; padding: 0; display: grid; gap: var(--s-3); max-height: 70vh; overflow: auto; }
+.sent li:not(.empty) {
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--night);
+  border-left: 4px solid var(--ink-3); display: grid; gap: 4px;
+}
+.sent li[data-kind='ok'] { border-left-color: var(--ok); }
+.sent li[data-kind='pending'] { border-left-color: var(--warn); }
+.sent li[data-kind='held'] { border-left-color: var(--live); }
+.sent li[data-kind='bad'] { border-left-color: var(--bad); }
+.sent .top { display: flex; justify-content: space-between; gap: var(--s-2); align-items: center; flex-wrap: wrap; }
+.sent .code { font-family: var(--f-display); font-weight: 600; }
+.sent .msg { font-size: 14px; color: var(--ink-2); }
+.sent .meta { font-size: 12.5px; color: var(--ink-3); display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+.sent .meta button { background: none; border: 0; color: var(--live); cursor: pointer; padding: 0; font-size: 12.5px; text-decoration: underline; }
+
+@media (max-width: 900px) {
+  .jur-grid { grid-template-columns: 1fr; }
+  .votes { grid-template-columns: repeat(2, 1fr); }
+  .sum-line, .row-2 { grid-template-columns: 1fr; }
+}

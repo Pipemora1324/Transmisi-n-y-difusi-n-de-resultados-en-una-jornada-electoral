@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transmisión de actas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/theme.css" />
+  <link rel="stylesheet" href="/css/jurado.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark">E14</span>
+      <span><span class="brand-name">Transmisión de actas</span><br /><span class="brand-sub">Aplicación del jurado</span></span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="/">Resultados</a>
+      <a href="/jurado" aria-current="page">Jurados</a>
+      <a href="/auditor">Verificación</a>
+      <a href="/ops">Operación</a>
+    </nav>
+    <span class="conn" id="conn" data-state="retry">Conectando…</span>
+  </header>
+
+  <main class="wrap jur-grid">
+    <div class="banner" id="banner" role="status"></div>
+
+    <form class="panel acta" id="form" autocomplete="off" novalidate>
+      <div class="acta-head">
+        <div>
+          <h2>Acta E-14</h2>
+          <p class="small muted">Digita los totales tal como quedaron en el acta física.</p>
+        </div>
+        <div class="acta-code num" id="acta-code">E14-———-————-03</div>
+      </div>
+
+      <div class="row-2">
+        <div class="field"><label for="jurado">Tu credencial</label><input class="input" id="jurado" placeholder="JUR-88134" required /></div>
+        <div class="field"><label for="mesa">Número de mesa (1 a 6.400)</label><input class="input num" id="mesa" type="number" min="1" max="6400" inputmode="numeric" required /></div>
+      </div>
+      <p class="small muted" id="mesa-info">Escribe la mesa para ver su puesto y municipio.</p>
+
+      <fieldset class="votes" id="votes">
+        <legend>Votos</legend>
+      </fieldset>
+
+      <div class="sum-line">
+        <div class="field"><label for="sufragantes">Total de sufragantes</label><input class="input num" id="sufragantes" type="number" min="0" inputmode="numeric" required /></div>
+        <div class="sum-check" id="sum-check" data-state="idle">La suma aparecerá aquí</div>
+      </div>
+
+      <input type="hidden" id="version" value="1" />
+      <div class="actions">
+        <button type="button" class="btn" id="fill">Llenar con datos de prueba</button>
+        <button type="submit" class="btn btn-primary" id="send">Transmitir acta</button>
+      </div>
+      <p class="small muted" id="version-note"></p>
+    </form>
+
+    <section class="panel outbox" aria-labelledby="outbox-title">
+      <div class="outbox-head">
+        <h2 id="outbox-title">Tus envíos</h2>
+        <span class="chip" id="net">Red —</span>
+      </div>
+      <p class="small muted">Si no hay señal, el acta queda guardada en este dispositivo y se transmite sola cuando vuelva la red.</p>
+      <ul class="sent" id="sent"><li class="empty muted small">Todavía no has transmitido ninguna acta.</li></ul>
+    </section>
+  </main>
+
+  <script type="module" src="/js/jurado.js"></script>
+</body>
+</html>
