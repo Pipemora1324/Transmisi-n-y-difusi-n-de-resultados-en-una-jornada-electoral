@@ -1,5 +1,5 @@
 --[[
-  apply_acta.lua — Operación atómica compuesta (RF-1, RF-2, RF-3).
+  apply_acta.lua — Operación atómica compuesta (RF-1, RF-2, RF-3, RF-7).
 
   Redis ejecuta el script completo sin intercalar comandos de otros clientes, así que
   la reversión de la versión anterior, la suma de la nueva y la actualización de los
@@ -9,6 +9,7 @@
   Modos:
     apply   -> acta válida enviada por un jurado
     hold    -> acta dudosa: se guarda aparte y entra a la cola de verificación
+    approve -> un auditor dueño del bloqueo aprueba un acta retenida
 
   KEYS
    1 idem:<clave>          2 acta:<id>            3 tot:mesa:<m>
@@ -27,12 +28,16 @@ local mode = ARGV[10]
 local now = ARGV[11]
 
 -- 1) Idempotencia: un reenvío con la misma clave devuelve la MISMA respuesta original.
-local cached = redis.call('GET', KEYS[1])
-if cached then return { 'DUPLICATE', cached } end
+if mode ~= 'approve' then
+  local cached = redis.call('GET', KEYS[1])
+  if cached then return { 'DUPLICATE', cached } end
+end
 
 local function remember(status, payload)
   local body = cjson.encode(payload)
-  redis.call('SET', KEYS[1], body, 'EX', tonumber(ARGV[9]))
+  if mode ~= 'approve' then
+    redis.call('SET', KEYS[1], body, 'EX', tonumber(ARGV[9]))
+  end
   return { status, body }
 end
 
@@ -42,6 +47,25 @@ local votosJson = ARGV[3]
 local sufragantes = ARGV[4]
 local jurado = ARGV[5]
 local hashFoto = ARGV[12]
+
+-- 2) Aprobación: solo el dueño actual del bloqueo puede resolver (liberación segura).
+if mode == 'approve' then
+  local owner = redis.call('GET', KEYS[14])
+  if owner ~= ARGV[14] then
+    return { 'NOT_OWNER', cjson.encode({ acta = acta, msg = 'El bloqueo ya no te pertenece' }) }
+  end
+  local held = redis.call('HGETALL', KEYS[12])
+  if #held == 0 then
+    return { 'NOT_FOUND', cjson.encode({ acta = acta }) }
+  end
+  local h = {}
+  for i = 1, #held, 2 do h[held[i]] = held[i + 1] end
+  version = tonumber(h.version)
+  votosJson = h.votos
+  sufragantes = h.sufragantes
+  jurado = h.jurado
+  hashFoto = h.hash_foto or ''
+end
 
 -- 3) Convergencia por versión (RF-2): el estado final depende del conjunto, no del orden.
 local cur = redis.call('HGET', KEYS[2], 'version')
@@ -56,6 +80,10 @@ end
 
 if cur and cur >= version then
   local status = (cur == version) and 'DUPLICATE_VERSION' or 'STALE'
+  if mode == 'approve' then
+    cleanupHeld()
+    redis.call('PUBLISH', 'ch:audit', cjson.encode({ type = 'queue:resolved', acta = acta, result = 'stale' }))
+  end
   return remember(status, { status = status, acta = acta, applied = cur, received = version })
 end
 
@@ -108,9 +136,11 @@ redis.call('HSET', KEYS[2], 'version', version, 'votos', votosJson, 'sufragantes
 
 -- Si existía una versión retenida más vieja que la que acabamos de aplicar, ya no aplica.
 local heldVersion = redis.call('HGET', KEYS[12], 'version')
-if heldVersion and tonumber(heldVersion) <= version then
-  cleanupHeld()
-  redis.call('PUBLISH', 'ch:audit', cjson.encode({ type = 'queue:resolved', acta = acta, result = 'superseded' }))
+if mode == 'approve' or (heldVersion and tonumber(heldVersion) <= version) then
+  if heldVersion then
+    cleanupHeld()
+    redis.call('PUBLISH', 'ch:audit', cjson.encode({ type = 'queue:resolved', acta = acta, result = (mode == 'approve') and 'approved' or 'superseded' }))
+  end
 end
 
 -- 6) Marcar tópicos sucios para el agregador (RF-4) y registrar correcciones (explicación).

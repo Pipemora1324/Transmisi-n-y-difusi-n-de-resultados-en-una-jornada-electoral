@@ -96,6 +96,20 @@ export async function receiveActa(raw) {
   }
 }
 
+// Aprobación desde la consola de verificación (RF-7): requiere el token del bloqueo.
+export async function approveHeld(actaId, token) {
+  const held = await redis.hgetall(K.held(actaId));
+  if (!held.mesa) return { status: 'NOT_FOUND' };
+  const mesa = getMesa(Number(held.mesa));
+  const keys = buildKeys({ idem: `approve:${actaId}:${held.version}`, acta: actaId }, mesa);
+  const [status, body] = await redis.applyActa(
+    ...keys, actaId, held.version, held.votos, held.sufragantes, held.jurado,
+    mesa.mesa, mesa.puesto, mesa.municipio, config.idemTtlSec, 'approve', Date.now(), '', 0, token, '',
+  );
+  if (status === 'APPLIED' || status === 'CORRECTED') metrics.actaApplied();
+  return { status, ...JSON.parse(body) };
+}
+
 function reply(status, data = {}) {
   return { type: 'ack', status, message: MESSAGES[status] || status, final: FINAL_STATUSES.has(status), ...data };
 }
