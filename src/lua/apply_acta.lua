@@ -1,5 +1,5 @@
 --[[
-  apply_acta.lua — Operación atómica compuesta (RF-1, RF-3).
+  apply_acta.lua — Operación atómica compuesta (RF-1, RF-2, RF-3).
 
   Redis ejecuta el script completo sin intercalar comandos de otros clientes, así que
   la reversión de la versión anterior, la suma de la nueva y la actualización de los
@@ -43,6 +43,22 @@ local sufragantes = ARGV[4]
 local jurado = ARGV[5]
 local hashFoto = ARGV[12]
 
+-- 3) Convergencia por versión (RF-2): el estado final depende del conjunto, no del orden.
+local cur = redis.call('HGET', KEYS[2], 'version')
+cur = cur and tonumber(cur) or nil
+
+local function cleanupHeld()
+  redis.call('DEL', KEYS[12])
+  redis.call('ZREM', KEYS[11], acta)
+  redis.call('DEL', KEYS[14])
+  redis.call('HDEL', KEYS[15], acta)
+end
+
+if cur and cur >= version then
+  local status = (cur == version) and 'DUPLICATE_VERSION' or 'STALE'
+  return remember(status, { status = status, acta = acta, applied = cur, received = version })
+end
+
 -- 4) Acta dudosa: queda fuera del acumulado hasta que un auditor la apruebe.
 if mode == 'hold' then
   local heldVersion = redis.call('HGET', KEYS[12], 'version')
@@ -58,8 +74,6 @@ if mode == 'hold' then
 end
 
 -- 5) Aplicación: revertir versión anterior (si existe) y sumar la nueva en los 4 niveles.
-local cur = redis.call('HGET', KEYS[2], 'version')
-cur = cur and tonumber(cur) or nil
 local newVotes = cjson.decode(votosJson)
 local prevVotes = nil
 if cur then prevVotes = cjson.decode(redis.call('HGET', KEYS[2], 'votos')) end
@@ -92,10 +106,25 @@ redis.call('HSET', KEYS[2], 'version', version, 'votos', votosJson, 'sufragantes
   'jurado', jurado, 'mesa', ARGV[6], 'puesto', ARGV[7], 'municipio', ARGV[8],
   'hash_foto', hashFoto, 'ts', now)
 
--- 6) Marcar tópicos sucios para el agregador (RF-4).
+-- Si existía una versión retenida más vieja que la que acabamos de aplicar, ya no aplica.
+local heldVersion = redis.call('HGET', KEYS[12], 'version')
+if heldVersion and tonumber(heldVersion) <= version then
+  cleanupHeld()
+  redis.call('PUBLISH', 'ch:audit', cjson.encode({ type = 'queue:resolved', acta = acta, result = 'superseded' }))
+end
+
+-- 6) Marcar tópicos sucios para el agregador (RF-4) y registrar correcciones (explicación).
 redis.call('SADD', KEYS[10], 'dep', 'mun:' .. ARGV[8], 'puesto:' .. ARGV[7])
 redis.call('HINCRBY', KEYS[16], 'count', 1)
 redis.call('HSETNX', KEYS[16], 't0', now)
 
-local status = prevVotes and 'CORRECTED' or 'APPLIED'
+local status = 'APPLIED'
+if prevVotes then
+  status = 'CORRECTED'
+  redis.call('RPUSH', KEYS[13], cjson.encode({
+    acta = acta, mesa = tonumber(ARGV[6]), puesto = tonumber(ARGV[7]), municipio = tonumber(ARGV[8]),
+    from = cur, to = version, before = prevVotes, after = newVotes,
+  }))
+end
+
 return remember(status, { status = status, acta = acta, version = version, previous = cur })
