@@ -1,0 +1,135 @@
+/* Sistema visual "Noche de escrutinio".
+   Índigo andino de fondo, paneles con borde de acta E-14 y el magenta como color del
+   sistema en vivo. Las cifras usan numerales tabulares para que no "bailen" al cambiar. */
+
+:root {
+  --night: #10133a;
+  --night-2: #171b4a;
+  --panel: #1d2259;
+  --line: #2e357d;
+  --ink: #eef0ff;
+  --ink-2: #aab0e6;
+  --ink-3: #7880c4;
+  --live: #d33fe0;
+  --live-soft: rgba(211, 63, 224, 0.16);
+  --ok: #37d99a;
+  --warn: #ffb020;
+  --bad: #ff5a6e;
+  --c1: #ff3d81;
+  --c2: #2ee6c5;
+  --c3: #ffb020;
+
+  --r-lg: 18px;
+  --r-md: 12px;
+  --r-sm: 7px;
+
+  --f-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-text: 'Instrument Sans', system-ui, sans-serif;
+
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 72px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background:
+    radial-gradient(1200px 600px at 85% -10%, rgba(211, 63, 224, 0.14), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(46, 230, 197, 0.07), transparent 60%),
+    var(--night);
+  color: var(--ink);
+  font: 400 16px/1.55 var(--f-text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--live); outline-offset: 2px; border-radius: 4px; }
+.num { font-family: var(--f-display); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+/* ---------- Barra superior compartida ---------- */
+.topbar {
+  display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap;
+  padding: var(--s-4) clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
+  background: rgba(16, 19, 58, 0.8);
+  backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: var(--s-3); text-decoration: none; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+  background: var(--live); color: var(--night); font: 800 15px/1 var(--f-display);
+  transform: rotate(-4deg);
+}
+.brand-name { font: 700 18px/1.1 var(--f-display); letter-spacing: -0.01em; }
+.brand-sub { font-size: 13px; color: var(--ink-3); }
+.nav { display: flex; gap: var(--s-1); margin-left: auto; flex-wrap: wrap; }
+.nav a {
+  text-decoration: none; padding: 7px 12px; border-radius: 999px; font-size: 14px; color: var(--ink-2);
+}
+.nav a:hover { background: var(--night-2); color: var(--ink); }
+.nav a[aria-current='page'] { background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* Indicador de conexión: un pulso solo cuando está en vivo. */
+.conn {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2);
+  padding: 6px 12px; border-radius: 999px; background: var(--night-2); box-shadow: inset 0 0 0 1px var(--line);
+}
+.conn::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.conn[data-state='live']::before { background: var(--live); box-shadow: 0 0 0 0 var(--live); animation: pulse 1.8s infinite; }
+.conn[data-state='retry']::before { background: var(--warn); }
+.conn[data-state='down']::before { background: var(--bad); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211,63,224,.7); } 70% { box-shadow: 0 0 0 9px rgba(211,63,224,0); } 100% { box-shadow: 0 0 0 0 rgba(211,63,224,0); } }
+
+/* ---------- Estructura ---------- */
+.wrap { max-width: 1240px; margin: 0 auto; padding: var(--s-6) clamp(16px, 4vw, 48px) var(--s-8); }
+.panel {
+  background: linear-gradient(180deg, var(--panel), var(--night-2));
+  border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--s-5);
+}
+.panel h2 { font: 700 20px/1.2 var(--f-display); margin: 0 0 var(--s-4); letter-spacing: -0.01em; }
+.muted { color: var(--ink-3); }
+.small { font-size: 13px; }
+
+/* Banner de degradación (RF-10): imposible de pasar por alto. */
+.banner {
+  display: none; margin: 0 0 var(--s-5); padding: var(--s-3) var(--s-4); border-radius: var(--r-md);
+  background: rgba(255, 90, 110, 0.12); border: 1px solid rgba(255, 90, 110, 0.5); color: #ffd3d9;
+}
+.banner.show { display: block; }
+
+/* ---------- Botones y campos ---------- */
+.btn {
+  border: 0; border-radius: var(--r-md); padding: 11px 18px; cursor: pointer; font-weight: 600;
+  background: var(--night-2); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink);
+  transition: transform .08s ease, background .15s ease;
+}
+.btn:hover { background: var(--panel); }
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--live); color: #160523; box-shadow: none; }
+.btn-primary:hover { background: #e257ee; }
+.btn-ok { background: var(--ok); color: #04261a; box-shadow: none; }
+.btn-bad { background: transparent; color: #ffb3bd; box-shadow: inset 0 0 0 1px rgba(255,90,110,.6); }
+
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; color: var(--ink-2); }
+.input, select.input {
+  width: 100%; padding: 11px 13px; border-radius: var(--r-sm); border: 1px solid var(--line);
+  background: var(--night); color: var(--ink); min-height: 44px;
+}
+.input:focus { border-color: var(--live); outline: none; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; background: var(--night); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); }
+.chip.ok { color: var(--ok); box-shadow: inset 0 0 0 1px rgba(55,217,154,.45); }
+.chip.warn { color: var(--warn); box-shadow: inset 0 0 0 1px rgba(255,176,32,.45); }
+.chip.bad { color: var(--bad); box-shadow: inset 0 0 0 1px rgba(255,90,110,.45); }
+.chip.live { color: var(--live); box-shadow: inset 0 0 0 1px rgba(211,63,224,.5); }
+
+.footer { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; color: var(--ink-3); font-size: 13px; margin-top: var(--s-7); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

@@ -6,7 +6,6 @@
 // del número de actas y pasa a depender del número de ventanas (≈ 3.600 en 2 horas).
 import { redis, K, isRedisHealthy } from '../redis.js';
 import { config } from '../config.js';
-import { sweepClaims, prunePresence } from '../verify/sweeper.js';
 
 let isLeader = false;
 export const amLeader = () => isLeader;
@@ -32,10 +31,6 @@ async function tick() {
       config.instanceId, config.streamMaxLen, Date.now(),
     );
     if (res[0] === 'OK' && config.demoMode) console.log(`[ticker] ventana publicada ${res[1]}`);
-
-    // Tareas de mantenimiento que basta con que haga una sola instancia.
-    await sweepClaims();
-    await prunePresence();
   } catch (err) {
     console.error('[ticker] error', err.message);
   }

@@ -1,5 +1,8 @@
 node_modules/
-*.log
 .env
+coverage/
+*.log
+artifacts/
+.integration-base/
 dump.rdb
-.DS_Store
+*.zip
