@@ -76,6 +76,7 @@ function connect() {
   es.addEventListener('delta', (e) => {
     const d = JSON.parse(e.data);
     applyDelta(d.d);
+    if (d.c?.length) addCorrections(d.c);
     markId(d.id);
   });
   es.addEventListener('status', (e) => {
@@ -205,6 +206,20 @@ function renderUpdated() {
   if (!state.lastUpdate) return;
   const s = Math.round((Date.now() - state.lastUpdate) / 1000);
   els.updated.textContent = s < 3 ? 'Actualizado ahora' : `Última actualización hace ${s} s`;
+}
+
+// ---------- Correcciones explicadas ----------
+const optName = (k) => geo.candidates.find((c) => c.id === k)?.name || { BLANCO: 'Blanco', NULO: 'Nulos', NO_MARCADO: 'No marcados' }[k] || k;
+function addCorrections(list) {
+  els.changes.querySelector('.empty')?.remove();
+  for (const c of list) {
+    const li = document.createElement('li');
+    const mun = geo.municipios[c.municipio - 1]?.name || '';
+    li.innerHTML = `<span class="ver">v${c.from} → v${c.to}</span><span>Acta <b>${c.acta}</b> · ${mun}</span>
+      <div class="diff">${Object.entries(c.diff).map(([k, d]) => `<span class="${d < 0 ? 'neg' : 'pos'}">${optName(k)} ${d > 0 ? '+' : ''}${fmt.format(d)}</span>`).join('')}</div>`;
+    els.changes.prepend(li);
+  }
+  while (els.changes.children.length > 40) els.changes.lastChild.remove();
 }
 
 function showBanner(text) {

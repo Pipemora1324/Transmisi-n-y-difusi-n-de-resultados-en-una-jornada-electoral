@@ -19,12 +19,31 @@ export function parseEntry(fields) {
 // Mezcla los deltas de varias entradas en uno solo, quedándose con el valor más reciente.
 export function mergeDeltas(entries, topics) {
   const delta = {};
+  const corr = [];
   for (const e of entries) {
     for (const t of topics) {
       if (e.t[t]) delta[t] = { ...(delta[t] || {}), ...e.t[t] };
     }
+    if (Array.isArray(e.c)) corr.push(...e.c);
   }
-  return delta;
+  return { delta, corr };
+}
+
+// Correcciones que le interesan a una vista concreta.
+export function relevantCorrections(corr, topics) {
+  if (!corr?.length) return [];
+  return corr
+    .filter((c) => topics.includes('dep') || topics.includes(`mun:${c.municipio}`) || topics.includes(`puesto:${c.puesto}`))
+    .map(summarizeCorrection);
+}
+
+export function summarizeCorrection(c) {
+  const diff = {};
+  for (const k of new Set([...Object.keys(c.before || {}), ...Object.keys(c.after || {})])) {
+    const d = (c.after?.[k] || 0) - (c.before?.[k] || 0);
+    if (d) diff[k] = d;
+  }
+  return { acta: c.acta, municipio: c.municipio, puesto: c.puesto, from: c.from, to: c.to, diff };
 }
 
 export async function takeSnapshot(topics) {
@@ -45,6 +64,6 @@ export async function recover(lastId, topics) {
   if (!rows.length) return { mode: 'none', id: lastId };
 
   const entries = rows.map(([, f]) => parseEntry(f)).filter(Boolean);
-  const delta = mergeDeltas(entries, topics);
-  return { mode: 'delta', id: rows[rows.length - 1][0], delta, entries: rows.length };
+  const { delta, corr } = mergeDeltas(entries, topics);
+  return { mode: 'delta', id: rows[rows.length - 1][0], delta, corr: relevantCorrections(corr, topics), entries: rows.length };
 }

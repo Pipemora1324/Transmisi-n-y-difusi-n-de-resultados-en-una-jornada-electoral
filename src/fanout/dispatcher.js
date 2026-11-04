@@ -8,7 +8,7 @@ import { streamReader } from '../redis.js';
 import { config } from '../config.js';
 import { registry } from './topics.js';
 import { sendInBatches, enqueueFanout } from './broadcaster.js';
-import { parseEntry } from './history.js';
+import { parseEntry, relevantCorrections } from './history.js';
 import { metrics } from '../metrics/metrics.js';
 
 let lastSeenId = '$';
@@ -49,7 +49,7 @@ async function dispatch(id, entry) {
   for (const g of groups) {
     const delta = {};
     for (const t of g.topics) if (entry.t[t]) delta[t] = entry.t[t];
-    const payload = JSON.stringify({ id, d: delta, ts: entry.ts });
+    const payload = JSON.stringify({ id, d: delta, c: relevantCorrections(entry.c, g.topics), ts: entry.ts });
     // Mensaje serializado UNA vez por grupo y reutilizado para todos sus clientes.
     const frame = `id: ${id}\nevent: delta\ndata: ${payload}\n\n`;
     sent += await sendInBatches(g.clients, (c) => c.push(id, frame));
