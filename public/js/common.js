@@ -23,4 +23,30 @@ export function setConn(el, state, text) {
   el.textContent = text;
 }
 
+// INP aproximado (RT-9): la interacción más lenta observada (percentil ~98 con pocas
+// muestras). Se muestra en pantalla y se reporta al servidor para el tablero.
+export function trackInp(onUpdate) {
+  if (!('PerformanceObserver' in window)) return;
+  const byInteraction = new Map();
+  let inp = 0;
+  try {
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) {
+        if (!e.interactionId) continue;
+        const prev = byInteraction.get(e.interactionId) || 0;
+        byInteraction.set(e.interactionId, Math.max(prev, e.duration));
+      }
+      const all = [...byInteraction.values()].sort((a, b) => b - a);
+      inp = all[Math.min(all.length - 1, Math.floor(all.length / 50))] || 0;
+      onUpdate(inp);
+    }).observe({ type: 'event', durationThreshold: 16, buffered: true });
+  } catch { return; }
+  setInterval(() => {
+    if (!inp) return;
+    const body = JSON.stringify({ value: inp });
+    navigator.sendBeacon?.('/api/inp', new Blob([body], { type: 'application/json' })) ||
+      fetch('/api/inp', { method: 'POST', body, headers: { 'Content-Type': 'application/json' }, keepalive: true });
+  }, 15000);
+}
+
 export const randomHex = (bytes = 8) => [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');

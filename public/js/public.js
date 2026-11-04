@@ -1,6 +1,6 @@
 // Cliente público: SSE con continuidad (RF-6), reintento con jitter (RF-10) y polling
 // como último recurso. El estado es un mapa tópico -> {opción: votos, __inf: mesas}.
-import { $, fmt, pct, loadGeo, backoff, setConn } from './common.js';
+import { $, fmt, pct, loadGeo, backoff, setConn, trackInp } from './common.js';
 
 const POLL_AFTER_FAILURES = 3;
 // Con 50.000 clientes por instancia, una base de 1 s traería a todos de vuelta en un segundo.
@@ -26,6 +26,7 @@ async function init() {
   els.mun.addEventListener('change', onFilter);
   els.puesto.addEventListener('change', onFilter);
   buildCandidates();
+  trackInp((v) => { els.fInp.textContent = `INP ${Math.round(v)} ms`; els.fInp.className = `chip ${v < 200 ? 'ok' : v < 500 ? 'warn' : 'bad'}`; });
   setInterval(renderUpdated, 1000);
   connect();
 }
