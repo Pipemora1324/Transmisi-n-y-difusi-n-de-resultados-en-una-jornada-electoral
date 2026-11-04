@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="t d" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<title id="t">Reconexiones por segundo tras matar una instancia, con y sin jitter</title>
+<desc id="d">Sin jitter los 500 clientes vuelven todos en el segundo 5. Con jitter llegan cerca de 100 por segundo durante 5 segundos.</desc>
+<rect width="760" height="400" fill="#fcfcfb"/>
+<text x="56" y="30" font-size="18" font-weight="600" fill="#2b2b28">Sin jitter, todos vuelven en el mismo segundo</text>
+<text x="56" y="52" font-size="13" fill="#5f5f58">Reconexiones por segundo al matar 1 de 8 instancias (4.000 clientes SSE)</text>
+<rect x="56" y="66" width="12" height="12" rx="2" fill="#2a78d6"/><text x="74" y="76" font-size="13" fill="#2b2b28">Con jitter</text>
+<rect x="156" y="66" width="12" height="12" rx="2" fill="#eb6834"/><text x="174" y="76" font-size="13" fill="#2b2b28">Sin jitter</text>
+<line x1="56" x2="740" y1="346" y2="346" stroke="#e7e6e1"/><text x="48" y="350" font-size="12" text-anchor="end" fill="#5f5f58">0</text>
+<line x1="56" x2="740" y1="295.2" y2="295.2" stroke="#e7e6e1"/><text x="48" y="299.2" font-size="12" text-anchor="end" fill="#5f5f58">100</text>
+<line x1="56" x2="740" y1="244.39999999999998" y2="244.39999999999998" stroke="#e7e6e1"/><text x="48" y="248.39999999999998" font-size="12" text-anchor="end" fill="#5f5f58">200</text>
+<line x1="56" x2="740" y1="193.6" y2="193.6" stroke="#e7e6e1"/><text x="48" y="197.6" font-size="12" text-anchor="end" fill="#5f5f58">300</text>
+<line x1="56" x2="740" y1="142.79999999999998" y2="142.79999999999998" stroke="#e7e6e1"/><text x="48" y="146.79999999999998" font-size="12" text-anchor="end" fill="#5f5f58">400</text>
+<line x1="56" x2="740" y1="92" y2="92" stroke="#e7e6e1"/><text x="48" y="96" font-size="12" text-anchor="end" fill="#5f5f58">500</text>
+<path d="M65.3076923076923 346V301.74Q65.3076923076923 297.74 69.3076923076923 297.74H77.3076923076923Q81.3076923076923 297.74 81.3076923076923 301.74V346Z" fill="#2a78d6"/>
+<text x="82.3076923076923" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">0</text>
+<path d="M117.92307692307692 346V303.264Q117.92307692307692 299.264 121.92307692307692 299.264H129.9230769230769Q133.9230769230769 299.264 133.9230769230769 303.264V346Z" fill="#2a78d6"/>
+<text x="134.9230769230769" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">1</text>
+<path d="M170.53846153846155 346V298.184Q170.53846153846155 294.184 174.53846153846155 294.184H182.53846153846155Q186.53846153846155 294.184 186.53846153846155 298.184V346Z" fill="#2a78d6"/>
+<text x="187.53846153846155" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">2</text>
+<path d="M223.15384615384613 346V294.628Q223.15384615384613 290.628 227.15384615384613 290.628H235.15384615384613Q239.15384615384613 290.628 239.15384615384613 294.628V346Z" fill="#2a78d6"/>
+<text x="240.15384615384613" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">3</text>
+<path d="M275.7692307692308 346V295.644Q275.7692307692308 291.644 279.7692307692308 291.644H287.7692307692308Q291.7692307692308 291.644 291.7692307692308 295.644V346Z" fill="#2a78d6"/>
+<text x="292.7692307692308" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">4</text>
+<path d="M328.3846153846154 346V344.92Q328.3846153846154 340.92 332.3846153846154 340.92H340.3846153846154Q344.3846153846154 340.92 344.3846153846154 344.92V346Z" fill="#2a78d6"/><path d="M346.3846153846154 346V96Q346.3846153846154 92 350.3846153846154 92H358.3846153846154Q362.3846153846154 92 362.3846153846154 96V346Z" fill="#eb6834"/>
+<text x="345.3846153846154" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">5</text>
+<path d="M381 346V346Q381 344.476 382.524 344.476H395.476Q397 344.476 397 346V346Z" fill="#2a78d6"/>
+<text x="398" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">6</text>
+<path d="M433.6153846153846 346V346Q433.6153846153846 342.952 436.6633846153846 342.952H446.5673846153846Q449.6153846153846 342.952 449.6153846153846 346V346Z" fill="#2a78d6"/>
+<text x="450.6153846153846" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">7</text>
+<path d="M486.2307692307692 346V346Q486.2307692307692 344.476 487.7547692307692 344.476H500.7067692307692Q502.2307692307692 344.476 502.2307692307692 346V346Z" fill="#2a78d6"/>
+<text x="503.2307692307692" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">8</text>
+<path d="M538.8461538461538 346V346Q538.8461538461538 343.46 541.3861538461538 343.46H552.3061538461538Q554.8461538461538 343.46 554.8461538461538 346V346Z" fill="#2a78d6"/>
+<text x="555.8461538461538" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">9</text>
+<path d="M591.4615384615385 346V346Q591.4615384615385 344.476 592.9855384615385 344.476H605.9375384615385Q607.4615384615385 344.476 607.4615384615385 346V346Z" fill="#2a78d6"/>
+<text x="608.4615384615385" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">10</text>
+<path d="M644.076923076923 346V346Q644.076923076923 344.476 645.600923076923 344.476H658.552923076923Q660.076923076923 344.476 660.076923076923 346V346Z" fill="#2a78d6"/>
+<text x="661.076923076923" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">11</text>
+<path d="M696.6923076923076 346V346Q696.6923076923076 343.46 699.2323076923076 343.46H710.1523076923077Q712.6923076923076 343.46 712.6923076923076 346V346Z" fill="#2a78d6"/>
+<text x="713.6923076923076" y="366" font-size="12" text-anchor="middle" fill="#5f5f58">12</text>
+<text x="369.3846153846154" y="106" font-size="13" font-weight="600" fill="#2b2b28">500 en un segundo</text>
+<text x="187.53846153846155" y="280.628" font-size="13" font-weight="600" text-anchor="middle" fill="#2b2b28">≈ 100 por segundo</text>
+<text x="398" y="388" font-size="12" text-anchor="middle" fill="#5f5f58">Segundos desde la caída de la instancia</text>
+</svg>
